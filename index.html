@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>For Kira</title>
+<meta name="description" content="Open it when you're alone.">
+<meta name="theme-color" content="#0b0a12">
+
+<!-- WhatsApp / iMessage link preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="For Kira">
+<meta property="og:description" content="Open it when you're alone.">
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤍</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+  <!-- ambient background -->
+  <div id="glowA" class="glow" aria-hidden="true"></div>
+  <div id="glowB" class="glow" aria-hidden="true"></div>
+  <div class="bg-grain" aria-hidden="true"></div>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <canvas id="petals" aria-hidden="true"></canvas>
+
+  <!-- the batakh, waddling past on her own schedule -->
+  <div id="roamer" class="roamer" aria-hidden="true"></div>
+
+  <!-- progress -->
+  <nav id="progress" class="progress" aria-label="chapters"></nav>
+
+  <!-- chapters get rendered here -->
+  <main id="book" class="book"></main>
+
+  <!-- desktop arrows -->
+  <button id="btnPrev" class="arrow arrow--prev" aria-label="previous page">
+    <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button id="btnNext" class="arrow arrow--next" aria-label="next page">
+    <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <!-- music -->
+  <button id="music" class="music" aria-label="toggle music" hidden>
+    <svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+  </button>
+
+  <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+
+  <script src="content.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>
