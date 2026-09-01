@@ -21,6 +21,7 @@
   --body:    "Inter", system-ui, -apple-system, sans-serif;
   --hand:    "Caveat", cursive;
 
+  color-scheme: dark;   /* page is already dark - stop the phone re-darkening it */
   --ease: cubic-bezier(.22,.8,.25,1);
   --pad: clamp(22px, 6vw, 64px);
 }
@@ -85,17 +86,19 @@ body::before{
 
 .page{
   position:absolute; inset:0;
+  touch-action: manipulation;   /* no double-tap zoom, no 300ms ghost-click delay */
   display:flex; flex-direction:column; justify-content:flex-start;
   padding: calc(var(--pad) + 40px) var(--pad) calc(var(--pad) + 40px);
   opacity:0; visibility:hidden;
   transform: translateY(26px) scale(.985);
-  transition: opacity .58s var(--ease), transform .58s var(--ease), visibility 0s .6s;
+  transition: opacity .52s var(--ease), transform .52s var(--ease), visibility 0s .62s;
+  will-change: opacity, transform;
   overflow-y:auto; overflow-x:hidden;
   -webkit-overflow-scrolling: touch;
 }
 .page.is-active{
   opacity:1; visibility:visible; transform:none;
-  transition: opacity .7s var(--ease) .06s, transform .7s var(--ease) .06s, visibility 0s;
+  transition: opacity .62s var(--ease) .04s, transform .62s var(--ease) .04s, visibility 0s;
 }
 .page.is-past{ transform: translateY(-26px) scale(.985); }
 /* margin:auto (not justify-content:center) so tall pages keep their top padding
@@ -895,4 +898,29 @@ em{
 @media (prefers-reduced-motion: reduce){
   body::after, .glow.on{ animation:none !important; }
   .spark{ display:none; }
+}
+
+
+/* =========================================================================
+   Safety net for the gradient-clipped headings (the cover "Kira", h2, em...).
+   Those set color:transparent and paint the letters with a background.
+   If a browser can't clip a background to text - or a phone's forced-dark
+   mode rewrites the background out from under it - the text would vanish.
+   Both fallbacks below restore solid, readable letters.
+   ========================================================================= */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)){
+  .cover h1, h2, em, .verdict, .point h3, .counter,
+  .letter p.sig, .quiz__score, .scold__mine{
+    background: none !important;
+    color: var(--cream) !important;
+  }
+  em, .verdict, .counter, .quiz__score{ color: var(--accent) !important; }
+}
+@media (forced-colors: active){
+  .cover h1, h2, em, .verdict, .point h3, .counter,
+  .letter p.sig, .quiz__score, .scold__mine{
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
 }

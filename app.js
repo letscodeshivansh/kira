@@ -958,9 +958,18 @@ const book = (() => {
 
     if (ch.onEnter) ch.onEnter();
   }
+  /* One turn at a time. A page takes ~.66s to cross over; without this a
+     double-tap (or an impatient triple-tap) fired two or three turns back to
+     back and she'd land two chapters past where she meant to be. Taps that
+     arrive mid-turn are dropped, not queued. */
+  let lastTurn = 0;
+  const TURN_LOCK = 620;
   function go(i){
     i = Math.max(0, Math.min(chapters.length - 1, i));
     if (i === idx) return;
+    const now = Date.now();
+    if (now - lastTurn < TURN_LOCK) return;
+    lastTurn = now;
     idx = i;
     furthest = Math.max(furthest, idx);
     save("kira.furthest", furthest);
