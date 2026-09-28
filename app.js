@@ -1036,8 +1036,9 @@ const book = (() => {
 })();
 
 /* ---------- input ----------
-   Pages turn ONLY from the arrow buttons (or a long deliberate swipe).
-   Tapping the page itself does nothing, so a stray tap can't move her. */
+   Pages turn ONLY from the arrow buttons.
+   Tapping or swiping the page itself does nothing, so nothing moves her
+   by accident and horizontal swipes stay with the photos that own them. */
 document.getElementById("btnNext").addEventListener("click", e => { e.stopPropagation(); book.next(); });
 document.getElementById("btnPrev").addEventListener("click", e => { e.stopPropagation(); book.prev(); });
 
@@ -1047,24 +1048,9 @@ addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") book.prev();
 });
 
-/* swipe - deliberate ones only. Swipes starting at the very left edge are
-   ignored, because that is the phone's own "go back" gesture zone. */
-(() => {
-  let x0 = null, y0 = null, t0 = 0;
-  addEventListener("touchstart", e => {
-    const t = e.touches[0];
-    if (t.clientX < 28){ x0 = null; return; }
-    x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
-  }, { passive:true });
-  addEventListener("touchend", e => {
-    if (x0 == null) return;
-    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    if (Date.now() - t0 < 600 && Math.abs(dx) > 90 && Math.abs(dx) > Math.abs(dy) * 2){
-      dx < 0 ? book.next() : book.prev();
-    }
-    x0 = y0 = null;
-  }, { passive:true });
-})();
+/* No page-turn swipe at all. It listened on the whole window, so swiping the
+   photo rail in Chapter Six turned the page instead of moving the photos.
+   The arrows are the only way to turn a page now. */
 
 /* ---------- optional background music ----------
    Drop an mp3 at  music.mp3  and the button appears by itself. */
