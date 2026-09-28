@@ -397,6 +397,7 @@ add((() => {
   return {
     el: page, name:"Your Beauty", accent:"#f7c9dc", accent2:"#a8c6ff", glow:["#4a2748","#1e2c52","#3a2050"], petals:1.6,
     onEnter(){ if (i < 0) setTimeout(reveal, 700); },
+    hasMore(){ return i < nodes.length - 1; },
     onAdvance(){ if (i < nodes.length - 1){ reveal(); return true; } return false; }
   };
 })());
@@ -527,20 +528,52 @@ add((() => {
   const field = page.querySelector("[data-field]");
   const no = page.querySelector("#btnNo"), yes = page.querySelector("#btnYes");
   const win = page.querySelector("[data-win]");
-  let t = 0, done = false, lastTouch = 0;
+  let t = 0, dodges = 0, done = false, lastTouch = 0;
+
+  /* Find a spot for "No" that does NOT sit on or near "Yes", so she can
+     never hit Yes by accident while she is chasing it. */
+  const GAP = 22;
+  function safeSpot(){
+    const f  = field.getBoundingClientRect();
+    const yr = yes.getBoundingClientRect();
+    const bw = no.offsetWidth, bh = no.offsetHeight;
+    const maxX = Math.max(0, field.clientWidth  - bw);
+    const maxY = Math.max(0, field.clientHeight - bh);
+    const zone = {
+      l: yr.left - f.left - GAP - bw,   r: yr.right  - f.left + GAP,
+      t: yr.top  - f.top  - GAP - bh,   b: yr.bottom - f.top  + GAP
+    };
+    const clashes = (x, y) => x > zone.l && x < zone.r && y > zone.t && y < zone.b;
+    let best = null, bestGap = -1;
+    for (let i = 0; i < 60; i++){
+      const x = rand(0, maxX), y = rand(0, maxY);
+      if (clashes(x, y)) continue;
+      const d = Math.hypot(x - (zone.l + zone.r)/2, y - (zone.t + zone.b)/2);
+      if (d > bestGap){ bestGap = d; best = { x, y }; }
+    }
+    if (!best) best = { x: (zone.l + bw/2 > maxX/2) ? 0 : maxX, y: maxY };
+    return best;
+  }
 
   function flee(e){
     if (done) return;
     if (e && e.type === "click" && Date.now() - lastTouch < 700) return;
     if (e && e.type === "touchstart") lastTouch = Date.now();
     if (e) e.preventDefault();
-    t = Math.min(t + 1, g.taunts.length - 1);
+
+    dodges++;
+    t = (t + 1) % g.taunts.length;            // loops forever, never gives up
     no.textContent = g.taunts[t];
-    const fw = field.clientWidth, fh = field.clientHeight;
-    no.style.left = rand(0, Math.max(0, fw - no.offsetWidth)) + "px";
-    no.style.top  = rand(0, Math.max(0, fh - no.offsetHeight)) + "px";
-    no.style.transform = "none";
-    if (t >= g.taunts.length - 1){ no.style.opacity = ".25"; no.style.pointerEvents = "none"; }
+
+    no.style.transform = `scale(${Math.max(.74, 1 - dodges * .015)})`;
+    no.style.opacity = "1";
+
+    const spot = safeSpot();
+    no.style.left = spot.x + "px";
+    no.style.top  = spot.y + "px";
+
+    // and Yes quietly grows, because that is the one she is meant to hit
+    yes.style.transform = `translateX(-50%) scale(${Math.min(1.3, 1 + dodges * .02)})`;
   }
   no.addEventListener("mouseenter", flee);
   no.addEventListener("touchstart", flee, { passive:false });
@@ -549,8 +582,9 @@ add((() => {
   yes.addEventListener("click", e => {
     e.stopPropagation();
     if (done) return; done = true;
-    no.style.opacity = "0"; no.style.pointerEvents = "none";
-    yes.style.transform = "translateX(-50%) scale(1.06)";
+    no.style.transition = "opacity .4s, transform .4s";
+    no.style.opacity = "0"; no.style.transform = "scale(.5)"; no.style.pointerEvents = "none";
+    yes.style.transform = "translateX(-50%) scale(1.12)";
     win.classList.add("in");
     confetti(80,.5); petals.shower(10);
   });
@@ -645,6 +679,7 @@ add((() => {
   return {
     el: page, name:"The Prescription", accent:"#59e0bd", accent2:"#7fb8ff", glow:["#0f463f","#152f52","#123b52"], petals:.4,
     onEnter(){ if (i === 0) setTimeout(reveal, 900); },
+    hasMore(){ return i < items.length; },
     onAdvance(){ return reveal(); }
   };
 })());
@@ -698,6 +733,7 @@ add((() => {
 
   return {
     el: page, name:"The Gym", accent:"#6bb8ff", accent2:"#b39cff", glow:["#14305c","#301a52","#123a5e"], petals:.3,
+    hasMore(){ return n < g.reps.length; },
     onAdvance(){ return rep(); }
   };
 })());
@@ -957,6 +993,12 @@ const book = (() => {
     CONFETTI_COLORS = [ch.accent, a2, "#fff8f0", "#ffd166", "#ff9db0", "#b39cff"];
 
     if (ch.onEnter) ch.onEnter();
+    pip();
+  }
+  /* Dot on the forward arrow while this chapter still has something to reveal. */
+  function pip(){
+    const ch = chapters[idx];
+    bNext.classList.toggle("has-more", !!(ch.hasMore && ch.hasMore()));
   }
   /* One turn at a time. A page takes ~.66s to cross over; without this a
      double-tap (or an impatient triple-tap) fired two or three turns back to
@@ -978,7 +1020,7 @@ const book = (() => {
   }
   function next(){
     const ch = chapters[idx];
-    if (ch.onAdvance && ch.onAdvance()) return;   // chapter consumed the tap
+    if (ch.onAdvance && ch.onAdvance()){ pip(); return; }   // chapter consumed the tap
     go(idx + 1);
   }
   furthest = Math.max(0, Math.min(chapters.length - 1, load("kira.furthest", 0) | 0));
@@ -994,16 +1036,10 @@ const book = (() => {
 })();
 
 /* ---------- input ----------
-   Tap the page to turn it — but never when she's tapping something
-   she's meant to be playing with. */
-const INTERACTIVE = "button, a, textarea, input, select, .crime, .polaroid, .rail, .cake, .pad, .dumbbell, .duckfield, .roamer, .toc, .lightbox, .chip, .scold__log, .point";
-
-document.getElementById("book").addEventListener("click", e => {
-  if (e.target.closest(INTERACTIVE)) return;
-  (e.clientX > innerWidth * 0.35) ? book.next() : book.prev();
-});
-document.getElementById("btnNext").addEventListener("click", () => book.next());
-document.getElementById("btnPrev").addEventListener("click", () => book.prev());
+   Pages turn ONLY from the arrow buttons (or a long deliberate swipe).
+   Tapping the page itself does nothing, so a stray tap can't move her. */
+document.getElementById("btnNext").addEventListener("click", e => { e.stopPropagation(); book.next(); });
+document.getElementById("btnPrev").addEventListener("click", e => { e.stopPropagation(); book.prev(); });
 
 addEventListener("keydown", e => {
   if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
@@ -1011,16 +1047,19 @@ addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") book.prev();
 });
 
-/* swipe */
+/* swipe - deliberate ones only. Swipes starting at the very left edge are
+   ignored, because that is the phone's own "go back" gesture zone. */
 (() => {
   let x0 = null, y0 = null, t0 = 0;
   addEventListener("touchstart", e => {
-    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+    const t = e.touches[0];
+    if (t.clientX < 28){ x0 = null; return; }
+    x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
   }, { passive:true });
   addEventListener("touchend", e => {
     if (x0 == null) return;
     const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    if (Date.now() - t0 < 700 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6){
+    if (Date.now() - t0 < 600 && Math.abs(dx) > 90 && Math.abs(dx) > Math.abs(dy) * 2){
       dx < 0 ? book.next() : book.prev();
     }
     x0 = y0 = null;

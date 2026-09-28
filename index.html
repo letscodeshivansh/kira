@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -41,13 +41,16 @@
   <!-- chapters get rendered here -->
   <main id="book" class="book"></main>
 
-  <!-- desktop arrows -->
-  <button id="btnPrev" class="arrow arrow--prev" aria-label="previous page">
-    <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
-  </button>
-  <button id="btnNext" class="arrow arrow--next" aria-label="next page">
-    <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-  </button>
+  <!-- page controls: the only way to turn a page, so no accidental taps -->
+  <div class="controls">
+    <button id="btnPrev" class="nav nav--prev" aria-label="previous page">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button id="btnNext" class="nav nav--next" aria-label="next page">
+      <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+      <span class="nav__pip" aria-hidden="true"></span>
+    </button>
+  </div>
 
   <!-- music -->
   <button id="music" class="music" aria-label="toggle music" hidden>
@@ -56,7 +59,7 @@
 
   <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
 
-  <script src="content.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="content.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

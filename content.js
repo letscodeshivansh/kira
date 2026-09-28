@@ -45,7 +45,7 @@ const CONTENT = {
     title: "Kira",
     subtitle: "there is a whole book about you in here.",
     button: "Open it",
-    hint: "swipe, or tap the page",
+    hint: "tap the arrow",
   },
 
   /* --- Ch.1  HAPPY BIRTHDAY --------------------------------------------- */
@@ -78,7 +78,7 @@ const CONTENT = {
       "And on your worst morning — hair like a crime scene, one eye still asleep —",
       "you are still the most beautiful thing that has ever happened to my life.",
     ],
-    tapHint: "tap for the next line",
+    tapHint: "the arrow gives you the next line",
   },
 
   /* --- Ch.3  SMALL CRIMES  (teasing) ------------------------------------ */

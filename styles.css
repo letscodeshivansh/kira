@@ -88,7 +88,7 @@ body::before{
   position:absolute; inset:0;
   touch-action: manipulation;   /* no double-tap zoom, no 300ms ghost-click delay */
   display:flex; flex-direction:column; justify-content:flex-start;
-  padding: calc(var(--pad) + 40px) var(--pad) calc(var(--pad) + 40px);
+  padding: calc(var(--pad) + 40px) var(--pad) calc(var(--pad) + 96px);
   opacity:0; visibility:hidden;
   transform: translateY(26px) scale(.985);
   transition: opacity .52s var(--ease), transform .52s var(--ease), visibility 0s .62s;
@@ -181,23 +181,55 @@ em{ color:var(--accent); font-style:italic; }
 .progress button.on{ background:var(--accent); width:16px; border-radius:3px; }
 
 /* ---------- navigation ---------- */
-.arrow{
-  position:fixed; z-index:15; top:50%; transform:translateY(-50%);
-  width:44px; height:44px; border-radius:50%;
-  border:1px solid var(--line); background:rgba(10,9,18,.4);
-  color:var(--muted); cursor:pointer; display:none;
-  align-items:center; justify-content:center;
-  transition: color .3s, border-color .3s, opacity .3s;
-  backdrop-filter: blur(6px);
+/* Page turning is buttons-only - tapping the page itself does nothing,
+   so a stray tap can never move her backwards or out of a chapter. */
+.controls{
+  position:fixed; z-index:22; left:0; right:0;
+  bottom:max(18px, calc(env(safe-area-inset-bottom) + 10px));
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 max(18px, env(safe-area-inset-left)) 0 max(18px, env(safe-area-inset-right));
+  pointer-events:none;
 }
-.arrow svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
-.arrow:hover{ color:var(--accent); border-color:var(--accent); }
-.arrow--prev{ left:24px } .arrow--next{ right:24px }
-.arrow[disabled]{ opacity:0; pointer-events:none; }
-@media (min-width:820px){ .arrow{ display:flex } }
+.nav{
+  pointer-events:auto; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%; background:rgba(10,9,18,.55);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  transition: opacity .35s var(--ease), transform .2s var(--ease),
+              border-color .35s, color .35s, box-shadow .35s;
+}
+.nav svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.nav:active{ transform:scale(.92); }
+.nav[disabled]{ opacity:0; pointer-events:none; }
+
+/* back - deliberately quiet */
+.nav--prev{ width:46px; height:46px; border:1px solid var(--line); color:var(--muted); }
+.nav--prev svg{ width:20px; height:20px; }
+.nav--prev:hover{ color:var(--accent); border-color:var(--accent); }
+
+/* next - the main thing she taps, so it is big and obvious */
+.nav--next{
+  position:relative; width:62px; height:62px;
+  border:1px solid var(--accent); color:var(--accent);
+  box-shadow:0 10px 34px -12px var(--accent);
+  animation: navpulse 2.8s ease-in-out infinite;
+}
+.nav--next svg{ width:26px; height:26px; }
+.nav--next:hover{ background:var(--accent-soft); }
+@keyframes navpulse{
+  0%,100%{ box-shadow:0 10px 34px -14px var(--accent), 0 0 0 0 rgba(255,255,255,0) }
+  50%    { box-shadow:0 10px 34px -8px  var(--accent), 0 0 0 7px rgba(255,255,255,.035) }
+}
+/* a dot on the button while this chapter still has something left to reveal */
+.nav__pip{
+  position:absolute; top:7px; right:7px; width:7px; height:7px; border-radius:50%;
+  background:var(--accent); opacity:0; transform:scale(.4);
+  transition:opacity .3s, transform .3s var(--ease);
+}
+.nav--next.has-more .nav__pip{ opacity:1; transform:none; }
 
 .music{
-  position:fixed; z-index:20; right:16px; bottom:max(16px, env(safe-area-inset-bottom));
+  position:fixed; z-index:20; right:62px; top:max(14px, env(safe-area-inset-top));
   width:38px; height:38px; border-radius:50%;
   border:1px solid var(--line); background:rgba(10,9,18,.4);
   color:var(--faint); cursor:pointer; display:flex; align-items:center; justify-content:center;
@@ -208,8 +240,9 @@ em{ color:var(--accent); font-style:italic; }
 .music.on{ color:var(--accent); }
 
 .hint{
-  position:absolute; left:0; right:0; bottom:calc(var(--pad) - 6px);
-  text-align:center; font-size:.66rem; letter-spacing:.24em;
+  position:absolute; left:0; right:0; bottom:calc(var(--pad) + 38px);
+  padding:0 88px;                      /* stay clear of the nav buttons */
+  text-align:center; font-size:.64rem; letter-spacing:.22em; line-height:1.7;
   text-transform:uppercase; color:var(--faint);
   animation: breathe 3.2s ease-in-out infinite;
 }
@@ -252,11 +285,15 @@ em{ color:var(--accent); font-style:italic; }
    ========================================================= */
 .rose{ display:block; }
 .rose--corner{
-  position:absolute; width:120px; height:120px; opacity:.5; pointer-events:none;
-  filter: drop-shadow(0 6px 18px rgba(255,255,255,.10));
+  position:absolute; width:104px; height:104px; opacity:.38; pointer-events:none;
+  z-index:0;                           /* behind the words, never over them */
+  filter: drop-shadow(0 6px 18px rgba(255,255,255,.08));
 }
-.rose--tl{ top:-6px; left:-34px; transform:rotate(-18deg); }
-.rose--br{ bottom:-16px; right:-30px; transform:rotate(24deg); }
+.rose--tl{ top:-62px; left:-46px; transform:rotate(-18deg); }
+.rose--br{ bottom:-62px; right:-46px; transform:rotate(24deg); }
+.cover .kicker, .cover h1, .cover .rule, .cover .subtitle, .cover .page__inner > div{
+  position:relative; z-index:1;
+}
 .rose-row{ display:flex; justify-content:center; gap:10px; margin:1.4rem 0 .4rem; }
 .rose-row .rose{ width:46px; height:46px; opacity:.85; animation: sway 5s ease-in-out infinite; }
 .rose-row .rose:nth-child(2){ width:62px; height:62px; animation-delay:-1.6s }
@@ -377,12 +414,19 @@ em{ color:var(--accent); font-style:italic; }
   font-family:var(--display); font-size:clamp(1.8rem,8vw,2.6rem);
   color:var(--cream); margin:1rem 0 2.4rem; font-weight:300;
 }
-.game__field{ position:relative; height:190px; margin:0 auto; max-width:420px; }
-#btnYes{ position:absolute; left:50%; top:34px; transform:translateX(-50%); }
+.game__field{ position:relative; height:300px; margin:0 auto; max-width:420px; }
+#btnYes{
+  position:absolute; left:50%; top:18px; transform:translateX(-50%);
+  transition:transform .35s var(--ease), box-shadow .35s; z-index:2;
+}
 #btnNo{
-  position:absolute; left:50%; top:100px; transform:translateX(-50%);
-  transition:left .28s var(--ease), top .28s var(--ease), transform .28s var(--ease), opacity .4s;
-  white-space:nowrap;
+  position:absolute; left:50%; top:150px; transform:translateX(-50%);
+  transition:left .26s var(--ease), top .26s var(--ease), transform .26s var(--ease);
+  z-index:1;
+  /* long taunts wrap instead of growing wider than the field and spilling out */
+  white-space:normal; text-align:center;
+  max-width:min(90%, 300px);
+  padding:.8em 1.35em; font-size:.72rem; line-height:1.4;
 }
 .game__win{
   font-family:var(--display); font-style:italic;
@@ -788,7 +832,7 @@ em{
 .toc-btn:hover, .share-btn:hover, .toc-btn.on{ color:var(--accent); border-color:var(--accent); }
 .toc-btn:active, .share-btn:active{ transform:scale(.93); }
 .toc-btn{ left:16px; top:max(14px, env(safe-area-inset-top)); }
-.share-btn{ right:16px; bottom:calc(max(16px, env(safe-area-inset-bottom)) + 46px); }
+.share-btn{ right:16px; top:max(14px, env(safe-area-inset-top)); }
 .music.hint-on{ color:var(--accent-2); }
 
 /* chapter menu */
